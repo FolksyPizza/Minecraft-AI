@@ -1,0 +1,32 @@
+from datasets import load_dataset
+kotlin_ds = load_dataset("JetBrains/Kotlin_HumanEval")
+java_ds = load_dataset("Nan-Do/instructional_code-search-net-java")
+
+kotlin_ds["train"].to_json("kotlin_dataset.jsonl", orient="records", lines=True)
+java_ds["train"].to_json("java_dataset.jsonl", orient="records", lines=True)
+
+files_and_mapping = [
+    {
+        "file": "java_dataset.jsonl",
+        "prompt_col": "INSTRUCTION",
+        "completion_col": "RESPONSE"
+    },
+    {
+        "file": "kotlin_dataset.jsonl",
+        "prompt_col": "prompt",
+        "completion_col": "canonical_solution"
+    }
+    ]
+output_file = "Java-Kotlin_Dataset.jsonl"
+
+
+with open(output_file, "w", encoding="utf-8") as out_f:
+    for entry in files_and_mapping:
+        with open(entry["file"], "r", encoding="utf-8") as in_f:
+            for line in in_f:
+                data = json.loads(line)
+                standardized = {
+                    "prompt": data[entry["prompt_col"]],
+                    "completion": data[entry["completion_col"]]
+                }
+                out_f.write(json.dumps(standardized) + "\n")
