@@ -1,0 +1,20 @@
+{
+  "policy": "permissive-only",
+  "sources": [
+    {
+      "name": "SkriptHub API derived pairs",
+      "path": "LoRA/labeled/sources/skripthub_pairs.jsonl",
+      "license_status": "verify-before-redistribution"
+    },
+    {
+      "name": "JetBrains/Kotlin_HumanEval",
+      "path": "LoRA/raw/kotlin_dataset.jsonl",
+      "license_status": "public-dataset-check-required"
+    },
+    {
+      "name": "Nan-Do/instructional_code-search-net-java",
+      "path": "LoRA/raw/java_dataset.jsonl",
+      "license_status": "public-dataset-check-required"
+    }
+  ]
+}

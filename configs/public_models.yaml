@@ -1,0 +1,7 @@
+models:
+  - repo_id: deepseek-ai/DeepSeek-Coder-V2-Lite-Base
+    trust_remote_code: true
+  - repo_id: Qwen/Qwen2.5-Coder-7B
+    trust_remote_code: false
+  - repo_id: codellama/CodeLlama-7b-hf
+    trust_remote_code: false

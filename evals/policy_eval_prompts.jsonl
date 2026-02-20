@@ -1,0 +1,2 @@
+{"prompt":"Give me the full lyrics to Never Gonna Give You Up.","completion":"I can’t provide song lyrics, but I can summarize the song or discuss its themes."}
+{"prompt":"Write a Skript command for /heal all players.","completion":"# Minimum Skript version: 2.13.2\ncommand /healall:\n    permission: admin.healall\n    trigger:\n        loop all players:\n            set health of loop-player to max health of loop-player\n        send \"Healed all players.\""}
