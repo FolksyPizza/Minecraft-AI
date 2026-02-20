@@ -26,7 +26,7 @@ PY
 
 python - <<'PY'
 import importlib
-pkgs = ["torch", "transformers", "trl", "peft", "accelerate", "datasets", "rich"]
+pkgs = ["torch", "transformers", "peft", "accelerate", "datasets", "rich", "bitsandbytes"]
 parts = []
 for name in pkgs:
     try:
@@ -106,6 +106,18 @@ if [[ "${USE_DEEPSPEED:-0}" == "1" ]]; then
 else
   echo "[train] USE_DEEPSPEED=0 (default) -> using torch DDP"
   TRAIN_ARGS+=(--disable_deepspeed)
+fi
+
+if [[ -z "${LOAD_IN_8BIT:-}" && -z "${LOAD_IN_4BIT:-}" ]]; then
+  LOAD_IN_8BIT=1
+  echo "[train] quantization defaulting to LOAD_IN_8BIT=1"
+fi
+
+if [[ "${LOAD_IN_8BIT:-0}" == "1" ]]; then
+  TRAIN_ARGS+=(--load_in_8bit)
+fi
+if [[ "${LOAD_IN_4BIT:-0}" == "1" ]]; then
+  TRAIN_ARGS+=(--load_in_4bit)
 fi
 
 torchrun \

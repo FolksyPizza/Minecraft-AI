@@ -13,9 +13,16 @@ import torch
 import yaml
 from datasets import load_dataset
 from huggingface_hub import snapshot_download
-from peft import LoraConfig, PeftModel, TaskType, get_peft_model
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, set_seed
-from trl import SFTTrainer
+from peft import LoraConfig, PeftModel, TaskType, get_peft_model, prepare_model_for_kbit_training
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    BitsAndBytesConfig,
+    DataCollatorForLanguageModeling,
+    Trainer,
+    TrainingArguments,
+    set_seed,
+)
 
 
 DEFAULT_PUBLIC_MODELS = Path(__file__).resolve().parent / "configs" / "public_models.yaml"
@@ -63,7 +70,7 @@ def resolve_anonymous_model(preferred_model: str | None, public_models_yaml: Pat
     raise RuntimeError(f"No anonymous model could be resolved. Attempts: {json.dumps(errors, indent=2)[:4000]}")
 
 
-def load_pairs_dataset(path: Path, max_seq_len: int, seed: int):
+def load_pairs_dataset(path: Path, tokenizer, max_seq_len: int, seed: int):
     ds = load_dataset("json", data_files=str(path), split="train")
 
     def to_text(ex):
@@ -72,6 +79,18 @@ def load_pairs_dataset(path: Path, max_seq_len: int, seed: int):
         return {"text": f"<|user|>\n{prompt}\n<|assistant|>\n{completion}"}
 
     ds = ds.map(to_text, remove_columns=ds.column_names)
+
+    def tokenize(batch):
+        tokens = tokenizer(
+            batch["text"],
+            truncation=True,
+            max_length=max_seq_len,
+            padding=False,
+        )
+        tokens["labels"] = [ids.copy() for ids in tokens["input_ids"]]
+        return tokens
+
+    ds = ds.map(tokenize, batched=True, remove_columns=["text"])
     ds = ds.shuffle(seed=seed)
 
     # create eval split if large enough
@@ -110,7 +129,7 @@ def build_training_args(
         logging_steps=logging_steps,
         save_steps=save_steps,
         eval_steps=eval_steps,
-        evaluation_strategy="steps",
+        eval_strategy="steps",
         save_strategy="steps",
         save_total_limit=3,
         bf16=bf16,
@@ -121,6 +140,7 @@ def build_training_args(
         dataloader_num_workers=2,
         gradient_checkpointing=True,
         gradient_checkpointing_kwargs={"use_reentrant": False},
+        ddp_find_unused_parameters=False,
     )
     if deepspeed_config is not None:
         kwargs["deepspeed"] = str(deepspeed_config)
@@ -149,20 +169,43 @@ def train_stage(
     seed: int,
     packing: bool,
     previous_adapter: Path | None,
+    load_in_8bit: bool,
+    load_in_4bit: bool,
 ) -> Path:
+    if load_in_8bit and load_in_4bit:
+        raise ValueError("Only one of load_in_8bit/load_in_4bit can be enabled.")
+
     bf16, fp16 = choose_precision()
     print(f"[{stage_name}] precision bf16={bf16} fp16={fp16}")
 
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=trust_remote_code, token=None)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.padding_side = "right"
 
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        trust_remote_code=trust_remote_code,
-        token=None,
-        torch_dtype=torch.bfloat16 if bf16 else torch.float16,
-    )
+    model_kwargs = {
+        "trust_remote_code": trust_remote_code,
+        "token": None,
+    }
+    if load_in_8bit or load_in_4bit:
+        compute_dtype = torch.bfloat16 if bf16 else torch.float16
+        model_kwargs["quantization_config"] = BitsAndBytesConfig(
+            load_in_8bit=load_in_8bit,
+            load_in_4bit=load_in_4bit,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_compute_dtype=compute_dtype,
+        )
+        local_rank = int(os.environ.get("LOCAL_RANK", "0"))
+        model_kwargs["device_map"] = {"": local_rank}
+    else:
+        model_kwargs["torch_dtype"] = torch.bfloat16 if bf16 else torch.float16
+
+    model = AutoModelForCausalLM.from_pretrained(model_name, **model_kwargs)
+    model.config.use_cache = False
+
+    if load_in_8bit or load_in_4bit:
+        model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=True)
 
     if previous_adapter is None:
         lora_config = LoraConfig(
@@ -177,7 +220,7 @@ def train_stage(
     else:
         model = PeftModel.from_pretrained(model, str(previous_adapter), is_trainable=True)
 
-    train_ds, eval_ds = load_pairs_dataset(dataset_path, max_seq_len=max_seq_len, seed=seed)
+    train_ds, eval_ds = load_pairs_dataset(dataset_path, tokenizer=tokenizer, max_seq_len=max_seq_len, seed=seed)
 
     args = build_training_args(
         output_dir=output_dir,
@@ -193,14 +236,12 @@ def train_stage(
         fp16=fp16,
     )
 
-    trainer = SFTTrainer(
+    trainer = Trainer(
         model=model,
-        tokenizer=tokenizer,
         train_dataset=train_ds,
         eval_dataset=eval_ds,
-        dataset_text_field="text",
-        max_seq_length=max_seq_len,
-        packing=packing,
+        tokenizer=tokenizer,
+        data_collator=DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False),
         args=args,
     )
 
@@ -229,6 +270,8 @@ def main() -> int:
     ap.add_argument("--output_dir", default="LoRA/output")
     ap.add_argument("--deepspeed_config", default="LoRA/deepspeed/zero3.json")
     ap.add_argument("--disable_deepspeed", action="store_true", default=False)
+    ap.add_argument("--load_in_8bit", action="store_true", default=False)
+    ap.add_argument("--load_in_4bit", action="store_true", default=False)
     ap.add_argument("--max_seq_len", type=int, default=2048)
     ap.add_argument("--per_device_train_batch_size", type=int, default=1)
     ap.add_argument("--gradient_accumulation_steps", type=int, default=16)
@@ -266,6 +309,7 @@ def main() -> int:
         print("[train] deepspeed disabled; using torch DDP")
     else:
         print(f"[train] deepspeed config: {ds_config}")
+    print(f"[train] quantization load_in_8bit={args.load_in_8bit} load_in_4bit={args.load_in_4bit}")
 
     run_info = {
         "timestamp": datetime.utcnow().isoformat() + "Z",
@@ -300,6 +344,8 @@ def main() -> int:
         seed=args.seed,
         packing=args.packing,
         previous_adapter=None,
+        load_in_8bit=args.load_in_8bit,
+        load_in_4bit=args.load_in_4bit,
     )
 
     stage2_adapter = train_stage(
@@ -324,6 +370,8 @@ def main() -> int:
         seed=args.seed,
         packing=args.packing,
         previous_adapter=stage1_adapter,
+        load_in_8bit=args.load_in_8bit,
+        load_in_4bit=args.load_in_4bit,
     )
 
     summary = {
