@@ -84,8 +84,9 @@ echo "[train] using ${GPU_COUNT} GPU(s)"
 
 MASTER_PORT="${MASTER_PORT:-29500}"
 TRAIN_ARGS=()
+export ACCELERATE_USE_DEEPSPEED=false
 
-if [[ "${USE_DEEPSPEED:-1}" == "1" ]]; then
+if [[ "${USE_DEEPSPEED:-0}" == "1" ]]; then
   if [[ -z "${CUDA_HOME:-}" ]]; then
     if command -v nvcc >/dev/null 2>&1; then
       CUDA_HOME="$(dirname "$(dirname "$(command -v nvcc)")")"
@@ -98,12 +99,12 @@ if [[ "${USE_DEEPSPEED:-1}" == "1" ]]; then
     TRAIN_ARGS+=(--disable_deepspeed)
   else
     echo "[train] CUDA_HOME=${CUDA_HOME}"
+    export ACCELERATE_USE_DEEPSPEED=true
     python -m pip install deepspeed==0.15.4
     TRAIN_ARGS+=(--deepspeed_config "${ROOT_DIR}/deepspeed/zero3.json")
   fi
 else
-  echo "[train] USE_DEEPSPEED=0 -> using torch DDP"
-  python -m pip uninstall -y deepspeed >/dev/null 2>&1 || true
+  echo "[train] USE_DEEPSPEED=0 (default) -> using torch DDP"
   TRAIN_ARGS+=(--disable_deepspeed)
 fi
 
