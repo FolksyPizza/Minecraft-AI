@@ -16,9 +16,9 @@ python -m pip install -r "${ROOT_DIR}/requirements.txt"
 
 python - <<'PY'
 import sys
-if sys.version_info < (3, 10) or sys.version_info >= (3, 12):
+if sys.version_info < (3, 10) or sys.version_info >= (3, 13):
     raise SystemExit(
-        f"[error] unsupported Python {sys.version.split()[0]}; use Python 3.10 or 3.11"
+        f"[error] unsupported Python {sys.version.split()[0]}; use Python 3.10, 3.11, or 3.12"
     )
 print(f"[env] python={sys.version.split()[0]}")
 PY
