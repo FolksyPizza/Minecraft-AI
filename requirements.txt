@@ -16,3 +16,4 @@ tqdm==4.66.5
 einops==0.8.0
 scipy==1.13.1
 setuptools==69.5.1
+rich==13.8.1

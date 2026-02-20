@@ -26,7 +26,7 @@ PY
 
 python - <<'PY'
 import importlib
-pkgs = ["torch", "transformers", "trl", "peft", "accelerate", "deepspeed", "datasets"]
+pkgs = ["torch", "transformers", "trl", "peft", "accelerate", "datasets", "rich"]
 parts = []
 for name in pkgs:
     try:
