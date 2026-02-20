@@ -14,6 +14,25 @@ source "${VENV_DIR}/bin/activate"
 python -m pip install --upgrade pip
 python -m pip install -r "${ROOT_DIR}/requirements.txt"
 
+python - <<'PY'
+import sys
+if sys.version_info < (3, 10) or sys.version_info >= (3, 12):
+    raise SystemExit(
+        f"[error] unsupported Python {sys.version.split()[0]}; use Python 3.10 or 3.11"
+    )
+print(f"[env] python={sys.version.split()[0]}")
+PY
+
+python - <<'PY'
+import importlib
+pkgs = ["torch", "transformers", "trl", "peft", "accelerate", "deepspeed", "datasets"]
+parts = []
+for name in pkgs:
+    mod = importlib.import_module(name)
+    parts.append(f"{name}={getattr(mod, '__version__', 'unknown')}")
+print("[env] " + ", ".join(parts))
+PY
+
 # Compose stage datasets if missing.
 STAGE1="${ROOT_DIR}/labeled/final_general_stage1.jsonl"
 STAGE2="${ROOT_DIR}/labeled/final_minecraft_primary.jsonl"
