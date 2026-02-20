@@ -89,7 +89,7 @@ def choose_precision() -> tuple[bool, bool]:
 
 def build_training_args(
     output_dir: Path,
-    deepspeed_config: Path,
+    deepspeed_config: Path | None,
     lr: float,
     epochs: float,
     batch_size: int,
@@ -100,7 +100,7 @@ def build_training_args(
     bf16: bool,
     fp16: bool,
 ) -> TrainingArguments:
-    return TrainingArguments(
+    kwargs = dict(
         output_dir=str(output_dir),
         num_train_epochs=epochs,
         learning_rate=lr,
@@ -113,7 +113,6 @@ def build_training_args(
         evaluation_strategy="steps",
         save_strategy="steps",
         save_total_limit=3,
-        deepspeed=str(deepspeed_config),
         bf16=bf16,
         fp16=fp16,
         lr_scheduler_type="cosine",
@@ -123,6 +122,9 @@ def build_training_args(
         gradient_checkpointing=True,
         gradient_checkpointing_kwargs={"use_reentrant": False},
     )
+    if deepspeed_config is not None:
+        kwargs["deepspeed"] = str(deepspeed_config)
+    return TrainingArguments(**kwargs)
 
 
 def train_stage(
@@ -131,7 +133,7 @@ def train_stage(
     trust_remote_code: bool,
     dataset_path: Path,
     output_dir: Path,
-    deepspeed_config: Path,
+    deepspeed_config: Path | None,
     max_seq_len: int,
     batch_size: int,
     grad_accum: int,
@@ -226,6 +228,7 @@ def main() -> int:
     ap.add_argument("--stage2_dataset", required=True)
     ap.add_argument("--output_dir", default="LoRA/output")
     ap.add_argument("--deepspeed_config", default="LoRA/deepspeed/zero3.json")
+    ap.add_argument("--disable_deepspeed", action="store_true", default=False)
     ap.add_argument("--max_seq_len", type=int, default=2048)
     ap.add_argument("--per_device_train_batch_size", type=int, default=1)
     ap.add_argument("--gradient_accumulation_steps", type=int, default=16)
@@ -258,12 +261,18 @@ def main() -> int:
         public_models_yaml=Path(args.public_models_yaml).resolve(),
     )
 
+    ds_config = None if args.disable_deepspeed else Path(args.deepspeed_config).resolve()
+    if ds_config is None:
+        print("[train] deepspeed disabled; using torch DDP")
+    else:
+        print(f"[train] deepspeed config: {ds_config}")
+
     run_info = {
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "resolved_model": model_name,
         "trust_remote_code": trust_remote_code,
         "world_size": int(os.environ.get("WORLD_SIZE", "1")),
-        "deepspeed_config": str(Path(args.deepspeed_config).resolve()),
+        "deepspeed_config": str(ds_config) if ds_config is not None else None,
     }
     (output_dir / "run_info.json").write_text(json.dumps(run_info, indent=2), encoding="utf-8")
 
@@ -275,7 +284,7 @@ def main() -> int:
         trust_remote_code=trust_remote_code,
         dataset_path=Path(args.stage1_dataset).resolve(),
         output_dir=output_dir,
-        deepspeed_config=Path(args.deepspeed_config).resolve(),
+        deepspeed_config=ds_config,
         max_seq_len=args.max_seq_len,
         batch_size=args.per_device_train_batch_size,
         grad_accum=args.gradient_accumulation_steps,
@@ -299,7 +308,7 @@ def main() -> int:
         trust_remote_code=trust_remote_code,
         dataset_path=Path(args.stage2_dataset).resolve(),
         output_dir=output_dir,
-        deepspeed_config=Path(args.deepspeed_config).resolve(),
+        deepspeed_config=ds_config,
         max_seq_len=args.max_seq_len,
         batch_size=args.per_device_train_batch_size,
         grad_accum=args.gradient_accumulation_steps,

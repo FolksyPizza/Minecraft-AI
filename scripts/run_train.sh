@@ -83,6 +83,27 @@ fi
 echo "[train] using ${GPU_COUNT} GPU(s)"
 
 MASTER_PORT="${MASTER_PORT:-29500}"
+TRAIN_ARGS=()
+
+if [[ "${USE_DEEPSPEED:-1}" == "1" ]]; then
+  if [[ -z "${CUDA_HOME:-}" ]]; then
+    if command -v nvcc >/dev/null 2>&1; then
+      CUDA_HOME="$(dirname "$(dirname "$(command -v nvcc)")")"
+      export CUDA_HOME
+    fi
+  fi
+
+  if [[ -z "${CUDA_HOME:-}" || ! -d "${CUDA_HOME}" ]]; then
+    echo "[warn] CUDA_HOME not set/found; disabling DeepSpeed and using torch DDP"
+    TRAIN_ARGS+=(--disable_deepspeed)
+  else
+    echo "[train] CUDA_HOME=${CUDA_HOME}"
+    TRAIN_ARGS+=(--deepspeed_config "${ROOT_DIR}/deepspeed/zero3.json")
+  fi
+else
+  echo "[train] USE_DEEPSPEED=0 -> using torch DDP"
+  TRAIN_ARGS+=(--disable_deepspeed)
+fi
 
 torchrun \
   --nproc_per_node="${GPU_COUNT}" \
@@ -93,7 +114,6 @@ torchrun \
   --stage1_dataset "${STAGE1}" \
   --stage2_dataset "${STAGE2}" \
   --output_dir "${ROOT_DIR}/output" \
-  --deepspeed_config "${ROOT_DIR}/deepspeed/zero3.json" \
   --max_seq_len "${MAX_SEQ_LEN:-2048}" \
   --per_device_train_batch_size "${PER_DEVICE_TRAIN_BATCH_SIZE:-1}" \
   --gradient_accumulation_steps "${GRAD_ACCUM_STEPS:-16}" \
@@ -108,4 +128,5 @@ torchrun \
   --eval_steps "${EVAL_STEPS:-500}" \
   --logging_steps "${LOGGING_STEPS:-20}" \
   --seed "${SEED:-42}" \
+  "${TRAIN_ARGS[@]}" \
   --packing
