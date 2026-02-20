@@ -98,10 +98,12 @@ if [[ "${USE_DEEPSPEED:-1}" == "1" ]]; then
     TRAIN_ARGS+=(--disable_deepspeed)
   else
     echo "[train] CUDA_HOME=${CUDA_HOME}"
+    python -m pip install deepspeed==0.15.4
     TRAIN_ARGS+=(--deepspeed_config "${ROOT_DIR}/deepspeed/zero3.json")
   fi
 else
   echo "[train] USE_DEEPSPEED=0 -> using torch DDP"
+  python -m pip uninstall -y deepspeed >/dev/null 2>&1 || true
   TRAIN_ARGS+=(--disable_deepspeed)
 fi
 
