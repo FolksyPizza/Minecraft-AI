@@ -11,7 +11,8 @@ if [[ ! -d "${VENV_DIR}" ]]; then
 fi
 
 source "${VENV_DIR}/bin/activate"
-python -m pip install --upgrade pip
+export SETUPTOOLS_USE_DISTUTILS=local
+python -m pip install --upgrade pip setuptools==69.5.1 wheel
 python -m pip install -r "${ROOT_DIR}/requirements.txt"
 
 python - <<'PY'
@@ -28,8 +29,11 @@ import importlib
 pkgs = ["torch", "transformers", "trl", "peft", "accelerate", "deepspeed", "datasets"]
 parts = []
 for name in pkgs:
-    mod = importlib.import_module(name)
-    parts.append(f"{name}={getattr(mod, '__version__', 'unknown')}")
+    try:
+        mod = importlib.import_module(name)
+        parts.append(f"{name}={getattr(mod, '__version__', 'unknown')}")
+    except Exception as exc:  # noqa: BLE001
+        parts.append(f"{name}=import-error:{exc.__class__.__name__}")
 print("[env] " + ", ".join(parts))
 PY
 
