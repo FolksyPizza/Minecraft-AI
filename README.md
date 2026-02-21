@@ -1,4 +1,4 @@
-# LoRA Training (CUDA, Multi-GPU, Anonymous Model Pull)
+# LoRA Adapter for DeepSeek/Qwen
 
 This folder is portable. Copy `LoRA/` to your CUDA machine, then run one command:
 
@@ -17,14 +17,10 @@ The script will:
 
 ## Requirements
 
-- Linux CUDA machine (dual RTX 3090 supported)
+- Linux CUDA machine (At least 1 GPU, and 64GB of RAM recommended)
 - Python 3.10+
 - NVIDIA driver + CUDA runtime working
 - Internet access to fetch public models/datasets
-
-## Anonymous Model Policy
-
-No account sign-in is required. The resolver tries `configs/public_models.yaml` in order and skips any gated/private model.
 
 Default list:
 - `deepseek-ai/DeepSeek-Coder-V2-Lite-Base`
