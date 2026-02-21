@@ -93,6 +93,17 @@ STAGE1_GENERAL_SHARE=0.85 STAGE2_GENERAL_SHARE=0.55 STAGE2_TEMPLATE_SHARE_CAP=0.
 bash scripts/run_train.sh
 ```
 
+Recommended anti-overfit mix for this repo:
+
+```bash
+FETCH_GENERAL_SOURCES=1 FETCH_GITHUB_SOURCES=1 REBUILD_STAGE_DATA=1 \
+STAGE1_GENERAL_SHARE=0.88 STAGE2_GENERAL_SHARE=0.60 \
+STAGE2_TEMPLATE_SHARE_CAP=0.05 STAGE2_FACT_SHARE_CAP=0.05 \
+MAX_SEQ_LEN=1024 GRAD_ACCUM_STEPS=16 \
+LOAD_IN_8BIT=1 LOAD_IN_4BIT=0 \
+bash scripts/run_train.sh
+```
+
 Curated addon sources include:
 - `ShaneBeee/SkBee`
 - `SkriptLang/skript-reflect`
@@ -105,6 +116,7 @@ Defaults in `scripts/run_train.sh` now prefer diversity:
 - `FETCH_GENERAL_SOURCES=1`
 - `FETCH_GITHUB_SOURCES=1`
 - `MIN_GENERAL_ROWS=5000` (hard floor to avoid over-specialized adapters)
+- `STAGE2_FACT_SHARE_CAP=0.05` (keeps addon/version grounding, but prevents fact-task takeover)
 
 ## Outputs
 

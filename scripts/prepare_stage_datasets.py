@@ -17,6 +17,14 @@ META_PROMPT_PATTERNS = [
     r"syntax type",
     r"return only the exact syntax pattern",
     r"documentation snippet",
+    r"title:",
+    r"addon:",
+    r"syntax pattern:",
+    r"given this skript syntax entry",
+    r"return compact json with keys addon",
+    r"return only the addon name",
+    r"return only the addon version",
+    r"compatible_addon_version",
 ]
 
 
@@ -57,6 +65,8 @@ def is_meta_task(prompt: str, completion: str) -> bool:
     p = prompt.lower()
     c = completion.strip().lower()
     if any(re.search(pat, p) for pat in META_PROMPT_PATTERNS):
+        return True
+    if c.startswith("compatible_addon_version="):
         return True
     if len(c.split()) <= 2 and c in {"effect", "condition", "expression", "event", "section", "function"}:
         return True
@@ -107,6 +117,12 @@ def fill_to_target(
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--minecraft-source", required=True, help="Minecraft-focused labeled JSONL")
+    ap.add_argument(
+        "--minecraft-fact-sources",
+        nargs="*",
+        default=[],
+        help="Optional fact-style Minecraft JSONL sources (addon/version attribution)",
+    )
     ap.add_argument("--general-sources", nargs="*", default=[], help="General coding JSONL sources")
     ap.add_argument("--stage1-out", required=True)
     ap.add_argument("--stage2-out", required=True)
@@ -115,6 +131,7 @@ def main() -> int:
     ap.add_argument("--stage1-general-share", type=float, default=0.85)
     ap.add_argument("--stage2-general-share", type=float, default=0.55)
     ap.add_argument("--stage2-template-share-cap", type=float, default=0.08)
+    ap.add_argument("--stage2-fact-share-cap", type=float, default=0.05)
     ap.add_argument("--max-stage1-rows", type=int, default=120000)
     ap.add_argument("--max-stage2-rows", type=int, default=140000)
     ap.add_argument("--min-general-rows", type=int, default=5000)
@@ -123,7 +140,15 @@ def main() -> int:
     rnd = random.Random(args.seed)
 
     mc_raw = dedupe(read_pairs(Path(args.minecraft_source).resolve()))
+    mc_meta = [r for r in mc_raw if is_meta_task(r["prompt"], r["completion"])]
     mc_rows = [r for r in mc_raw if not is_meta_task(r["prompt"], r["completion"])]
+
+    mc_fact_rows: list[dict[str, str]] = []
+    for src in args.minecraft_fact_sources:
+        p = Path(src).resolve()
+        if p.exists():
+            mc_fact_rows.extend(read_pairs(p))
+    mc_fact_rows = dedupe(mc_fact_rows)
 
     general_rows: list[dict[str, str]] = []
     for src in args.general_sources:
@@ -140,10 +165,12 @@ def main() -> int:
 
     mc_template = [r for r in mc_rows if is_template_like(r["completion"])]
     mc_concrete = [r for r in mc_rows if not is_template_like(r["completion"])]
+    mc_fact_pool = dedupe(mc_meta + mc_fact_rows)
 
     rnd.shuffle(general_rows)
     rnd.shuffle(mc_template)
     rnd.shuffle(mc_concrete)
+    rnd.shuffle(mc_fact_pool)
 
     # Stage 1: keep model broadly capable.
     stage1_target = min(args.max_stage1_rows, max(len(general_rows), 40000))
@@ -162,14 +189,17 @@ def main() -> int:
     stage2_mc_target = stage2_target - stage2_general_target
 
     stage2_template_cap = int(stage2_target * args.stage2_template_share_cap)
+    stage2_fact_cap = int(stage2_target * args.stage2_fact_share_cap)
     stage2_template_target = min(stage2_template_cap, max(0, stage2_mc_target // 4), len(mc_template))
-    stage2_concrete_target = max(0, stage2_mc_target - stage2_template_target)
+    stage2_fact_target = min(stage2_fact_cap, max(0, stage2_mc_target // 5), len(mc_fact_pool))
+    stage2_concrete_target = max(0, stage2_mc_target - stage2_template_target - stage2_fact_target)
 
     stage2_general = sample_rows(rnd, general_rows, stage2_general_target)
     stage2_concrete = sample_rows(rnd, mc_concrete, stage2_concrete_target)
     stage2_template_rows = sample_rows(rnd, mc_template, stage2_template_target)
+    stage2_fact_rows = sample_rows(rnd, mc_fact_pool, stage2_fact_target)
 
-    stage2 = dedupe(stage2_general + stage2_concrete + stage2_template_rows)
+    stage2 = dedupe(stage2_general + stage2_concrete + stage2_template_rows + stage2_fact_rows)
     stage2 = fill_to_target(rnd, stage2, general_rows + mc_concrete, stage2_target)
     rnd.shuffle(stage2)
 
@@ -178,16 +208,20 @@ def main() -> int:
 
     report = {
         "minecraft_rows_raw": len(mc_raw),
+        "minecraft_rows_meta_filtered": len(mc_meta),
         "minecraft_rows_after_meta_filter": len(mc_rows),
         "minecraft_concrete_rows": len(mc_concrete),
         "minecraft_template_rows": len(mc_template),
+        "minecraft_fact_pool_rows": len(mc_fact_pool),
         "general_rows": len(general_rows),
         "stage1_rows": len(stage1),
         "stage2_rows": len(stage2),
         "stage1_general_share_target": args.stage1_general_share,
         "stage2_general_share_target": args.stage2_general_share,
         "stage2_template_share_cap": args.stage2_template_share_cap,
+        "stage2_fact_share_cap": args.stage2_fact_share_cap,
         "stage2_template_rows_selected": len(stage2_template_rows),
+        "stage2_fact_rows_selected": len(stage2_fact_rows),
         "stage2_general_rows_selected": len(stage2_general),
         "stage2_concrete_rows_selected": len(stage2_concrete),
     }

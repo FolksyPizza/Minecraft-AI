@@ -14,16 +14,38 @@ def build_prompt(user_prompt: str) -> str:
     return f"<|user|>\n{user_prompt}\n<|assistant|>\n"
 
 
+def _build_eos_ids(tokenizer) -> list[int]:
+    eos_ids: set[int] = set()
+    if tokenizer.eos_token_id is not None:
+        eos_ids.add(int(tokenizer.eos_token_id))
+    for token in ("<|user|>", "<|im_end|>", "</s>"):
+        tid = tokenizer.convert_tokens_to_ids(token)
+        if isinstance(tid, int) and tid >= 0:
+            eos_ids.add(tid)
+    return sorted(eos_ids)
+
+
+def _clean_generation(text: str, user_prompt: str) -> str:
+    out = text.strip()
+    if out.lower().startswith(user_prompt.lower()):
+        out = out[len(user_prompt) :].strip()
+    # Stop at accidental turn restart markers.
+    for marker in ("<|user|>", "<|assistant|>", "<|im_start|>", "<|im_end|>"):
+        if marker in out:
+            out = out.split(marker, 1)[0].strip()
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Run local inference with base model + LoRA adapter")
     ap.add_argument("--base-model", default="Qwen/Qwen2.5-Coder-7B")
     ap.add_argument("--adapter", default="/Users/william/Desktop/sk/LoRA/output/stage2_minecraft_adapter")
     ap.add_argument("--prompt", required=True)
     ap.add_argument("--max-new-tokens", type=int, default=512)
-    ap.add_argument("--temperature", type=float, default=0.2)
-    ap.add_argument("--top-p", type=float, default=0.95)
-    ap.add_argument("--repetition-penalty", type=float, default=1.15)
-    ap.add_argument("--no-repeat-ngram-size", type=int, default=4)
+    ap.add_argument("--temperature", type=float, default=0.6)
+    ap.add_argument("--top-p", type=float, default=0.9)
+    ap.add_argument("--repetition-penalty", type=float, default=1.2)
+    ap.add_argument("--no-repeat-ngram-size", type=int, default=6)
     ap.add_argument("--load-in-8bit", action="store_true", default=False)
     ap.add_argument("--load-in-4bit", action="store_true", default=False)
     args = ap.parse_args()
@@ -75,6 +97,7 @@ def main() -> int:
     inputs = {k: v.to(device) for k, v in inputs.items()}
 
     with torch.inference_mode():
+        eos_token_id = _build_eos_ids(tokenizer)
         out = model.generate(
             **inputs,
             max_new_tokens=args.max_new_tokens,
@@ -84,10 +107,11 @@ def main() -> int:
             repetition_penalty=args.repetition_penalty,
             no_repeat_ngram_size=args.no_repeat_ngram_size,
             pad_token_id=tokenizer.eos_token_id,
+            eos_token_id=eos_token_id if eos_token_id else tokenizer.eos_token_id,
         )
 
     gen = tokenizer.decode(out[0][inputs["input_ids"].shape[1] :], skip_special_tokens=True)
-    print(gen.strip())
+    print(_clean_generation(gen, args.prompt))
     return 0
 
 

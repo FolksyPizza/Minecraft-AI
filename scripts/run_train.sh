@@ -12,6 +12,8 @@ fi
 
 source "${VENV_DIR}/bin/activate"
 export SETUPTOOLS_USE_DISTUTILS=local
+export TOKENIZERS_PARALLELISM="${TOKENIZERS_PARALLELISM:-false}"
+export OMP_NUM_THREADS="${OMP_NUM_THREADS:-1}"
 python -m pip install --upgrade pip setuptools==69.5.1 wheel
 python -m pip install -r "${ROOT_DIR}/requirements.txt"
 
@@ -112,6 +114,7 @@ if [[ "${BUILD_STAGE_DATA}" == "1" ]]; then
 
   python "${ROOT_DIR}/scripts/prepare_stage_datasets.py" \
     --minecraft-source "${MC_SOURCE}" \
+    --minecraft-fact-sources "${MC_SOURCE_ADDON_VERSION}" \
     --general-sources "${GENERAL_SOURCES[@]}" \
     --stage1-out "${STAGE1}" \
     --stage2-out "${STAGE2}" \
@@ -119,6 +122,7 @@ if [[ "${BUILD_STAGE_DATA}" == "1" ]]; then
     --stage1-general-share "${STAGE1_GENERAL_SHARE:-0.85}" \
     --stage2-general-share "${STAGE2_GENERAL_SHARE:-0.55}" \
     --stage2-template-share-cap "${STAGE2_TEMPLATE_SHARE_CAP:-0.08}" \
+    --stage2-fact-share-cap "${STAGE2_FACT_SHARE_CAP:-0.05}" \
     --max-stage1-rows "${MAX_STAGE1_ROWS:-120000}" \
     --max-stage2-rows "${MAX_STAGE2_ROWS:-140000}" \
     --min-general-rows "${MIN_GENERAL_ROWS:-5000}"

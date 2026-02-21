@@ -6,7 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import torch
@@ -312,7 +312,7 @@ def main() -> int:
     print(f"[train] quantization load_in_8bit={args.load_in_8bit} load_in_4bit={args.load_in_4bit}")
 
     run_info = {
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "resolved_model": model_name,
         "trust_remote_code": trust_remote_code,
         "world_size": int(os.environ.get("WORLD_SIZE", "1")),
