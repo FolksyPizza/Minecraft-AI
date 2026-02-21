@@ -36,9 +36,45 @@
       "error": null,
       "local_path": "/Users/william/Desktop/sk/LoRA/Minecraft-AI/raw/github/SkriptLang__skript-reflect",
       "url": "https://github.com/SkriptLang/skript-reflect"
+    },
+    {
+      "repo": "APickledWalrus/skript-gui",
+      "ref": "master",
+      "license": "GPL-3.0",
+      "pairs": 0,
+      "error": null,
+      "local_path": "/Users/william/Desktop/sk/LoRA/Minecraft-AI/raw/github/APickledWalrus__skript-gui",
+      "url": "https://github.com/APickledWalrus/skript-gui"
+    },
+    {
+      "repo": "Sashie/skript-yaml",
+      "ref": "master",
+      "license": "MIT",
+      "pairs": 76,
+      "error": null,
+      "local_path": "/Users/william/Desktop/sk/LoRA/Minecraft-AI/raw/github/Sashie__skript-yaml",
+      "url": "https://github.com/Sashie/skript-yaml"
+    },
+    {
+      "repo": "Pesekjak/Hippo",
+      "ref": "master",
+      "license": "MIT",
+      "pairs": 0,
+      "error": null,
+      "local_path": "/Users/william/Desktop/sk/LoRA/Minecraft-AI/raw/github/Pesekjak__Hippo",
+      "url": "https://github.com/Pesekjak/Hippo"
+    },
+    {
+      "repo": "Ekpoa/PoaSkRewritev2",
+      "ref": "master",
+      "license": "UNKNOWN",
+      "pairs": 0,
+      "error": null,
+      "local_path": "/Users/william/Desktop/sk/LoRA/Minecraft-AI/raw/github/Ekpoa__PoaSkRewritev2",
+      "url": "https://github.com/Ekpoa/PoaSkRewritev2"
     }
   ],
   "hf_downloads": {},
-  "total_pairs": 3541,
+  "total_pairs": 3607,
   "github_out": "/Users/william/Desktop/sk/LoRA/Minecraft-AI/labeled/sources/github_skript_concrete.jsonl"
 }

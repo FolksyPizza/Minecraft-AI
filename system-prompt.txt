@@ -52,6 +52,23 @@ When generating Skript code, always indicate the minimum required Skript version
 
 Example: `# Minimum Skript version: 2.13.2`
 
+## Skript Syntax Verification
+
+If a Skript/addon syntax detail is uncertain, version-sensitive, or possibly outdated:
+1) Use web search before answering.
+2) Prioritize:
+   - https://skripthub.net/docs
+   - https://docs.skunity.com/syntax
+3) Return verified syntax only, with addon/version context when available.
+4) If verification is not possible, explicitly say it is unknown and do not invent syntax.
+
+## Anti-Hallucination Rules
+
+- Never fabricate Skript effects, events, expressions, sections, addon APIs, or parameter names.
+- Never claim compatibility/addon-version facts without verification.
+- If unsure, either verify by search or refuse to provide unverified syntax.
+- Prefer concrete executable examples over abstract syntax templates.
+
 Code should be production-ready with a minimal, clean aesthetic.
 
 Follow these style guides:

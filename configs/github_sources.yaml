@@ -34,3 +34,40 @@ sources:
       - "docs/**/*.md"
       - "README.md"
     max_lines: 8000
+  - repo: APickledWalrus/skript-gui
+    ref: master
+    license: GPL-3.0
+    purpose: "skript-gui README usage examples"
+    enabled: true
+    include_globs:
+      - "README.md"
+      - "docs/**/*.md"
+    max_lines: 3000
+  - repo: Sashie/skript-yaml
+    ref: master
+    license: MIT
+    purpose: "skript-yaml tests and README examples"
+    enabled: true
+    include_globs:
+      - "res/**/*.sk"
+      - "README.md"
+      - "docs/**/*.md"
+    max_lines: 5000
+  - repo: Pesekjak/Hippo
+    ref: master
+    license: MIT
+    purpose: "Hippo README usage examples"
+    enabled: true
+    include_globs:
+      - "README.md"
+      - "docs/**/*.md"
+    max_lines: 3000
+  - repo: Ekpoa/PoaSkRewritev2
+    ref: master
+    license: UNKNOWN
+    purpose: "PoaSk README usage examples"
+    enabled: true
+    include_globs:
+      - "README.md"
+      - "docs/**/*.md"
+    max_lines: 3000

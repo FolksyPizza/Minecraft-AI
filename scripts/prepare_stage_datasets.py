@@ -117,6 +117,7 @@ def main() -> int:
     ap.add_argument("--stage2-template-share-cap", type=float, default=0.08)
     ap.add_argument("--max-stage1-rows", type=int, default=120000)
     ap.add_argument("--max-stage2-rows", type=int, default=140000)
+    ap.add_argument("--min-general-rows", type=int, default=5000)
     args = ap.parse_args()
 
     rnd = random.Random(args.seed)
@@ -130,6 +131,12 @@ def main() -> int:
         if p.exists():
             general_rows.extend(read_pairs(p))
     general_rows = dedupe(general_rows)
+    if len(general_rows) < args.min_general_rows:
+        raise SystemExit(
+            f"[error] insufficient general coding rows ({len(general_rows)}). "
+            f"Need at least {args.min_general_rows}. "
+            "Enable FETCH_GENERAL_SOURCES=1 or add more general datasets."
+        )
 
     mc_template = [r for r in mc_rows if is_template_like(r["completion"])]
     mc_concrete = [r for r in mc_rows if not is_template_like(r["completion"])]

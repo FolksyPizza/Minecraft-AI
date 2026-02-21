@@ -52,7 +52,7 @@ if [[ ! -f "${MC_SOURCE_RAW}" ]]; then
   exit 1
 fi
 
-if [[ "${FETCH_GITHUB_SOURCES:-0}" == "1" || "${FETCH_GENERAL_SOURCES:-0}" == "1" ]]; then
+if [[ "${FETCH_GITHUB_SOURCES:-1}" == "1" || "${FETCH_GENERAL_SOURCES:-1}" == "1" ]]; then
   DL_ARGS=(
     --raw-dir "${ROOT_DIR}/raw"
     --github-cache-dir "${ROOT_DIR}/raw/github"
@@ -60,14 +60,14 @@ if [[ "${FETCH_GITHUB_SOURCES:-0}" == "1" || "${FETCH_GENERAL_SOURCES:-0}" == "1
     --github-out "${MC_SOURCE_GITHUB}"
     --manifest-out "${ROOT_DIR}/raw/source_manifests/github_scan_manifest.json"
   )
-  if [[ "${FETCH_GENERAL_SOURCES:-0}" != "1" ]]; then
+  if [[ "${FETCH_GENERAL_SOURCES:-1}" != "1" ]]; then
     DL_ARGS+=(--skip-hf)
   fi
   python "${ROOT_DIR}/scripts/download_sources.py" \
     "${DL_ARGS[@]}"
 fi
 
-if [[ "${FETCH_GENERAL_SOURCES:-0}" == "1" ]]; then
+if [[ "${FETCH_GENERAL_SOURCES:-1}" == "1" ]]; then
   python "${ROOT_DIR}/scripts/standardize_sources.py" \
     --java-file "${ROOT_DIR}/raw/java_dataset.jsonl" \
     --kotlin-file "${ROOT_DIR}/raw/kotlin_dataset.jsonl" \
@@ -78,6 +78,10 @@ python "${ROOT_DIR}/scripts/build_addon_version_pairs.py" \
   --in "${MC_SOURCE_RAW}" \
   --out "${MC_SOURCE_ADDON_VERSION}"
 
+python "${ROOT_DIR}/scripts/check_required_addon_coverage.py" \
+  --in "${MC_SOURCE_RAW}" \
+  --min-per-addon "${MIN_REQUIRED_ADDON_ROWS:-20}"
+
 python "${ROOT_DIR}/scripts/merge_pair_sources.py" \
   --inputs "${MC_SOURCE_RAW}" "${MC_SOURCE_GITHUB}" "${MC_SOURCE_ADDON_VERSION}" \
   --out "${MC_SOURCE_COMBINED}"
@@ -86,7 +90,15 @@ python "${ROOT_DIR}/scripts/enrich_minecraft_concrete.py" \
   --in "${MC_SOURCE_COMBINED}" \
   --out "${MC_SOURCE_ENRICHED}"
 
+BUILD_STAGE_DATA=0
 if [[ "${REBUILD_STAGE_DATA:-0}" == "1" || ! -f "${STAGE1}" || ! -f "${STAGE2}" ]]; then
+  BUILD_STAGE_DATA=1
+fi
+if [[ "${FETCH_GITHUB_SOURCES:-1}" == "1" || "${FETCH_GENERAL_SOURCES:-1}" == "1" ]]; then
+  BUILD_STAGE_DATA=1
+fi
+
+if [[ "${BUILD_STAGE_DATA}" == "1" ]]; then
   echo "[data] building stage datasets"
 
   GENERAL_SOURCES=()
@@ -108,7 +120,8 @@ if [[ "${REBUILD_STAGE_DATA:-0}" == "1" || ! -f "${STAGE1}" || ! -f "${STAGE2}" 
     --stage2-general-share "${STAGE2_GENERAL_SHARE:-0.55}" \
     --stage2-template-share-cap "${STAGE2_TEMPLATE_SHARE_CAP:-0.08}" \
     --max-stage1-rows "${MAX_STAGE1_ROWS:-120000}" \
-    --max-stage2-rows "${MAX_STAGE2_ROWS:-140000}"
+    --max-stage2-rows "${MAX_STAGE2_ROWS:-140000}" \
+    --min-general-rows "${MIN_GENERAL_ROWS:-5000}"
 fi
 
 python "${ROOT_DIR}/scripts/validate_dataset.py" "${STAGE1}" "${STAGE2}"

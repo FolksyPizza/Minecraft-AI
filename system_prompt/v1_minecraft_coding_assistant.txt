@@ -30,6 +30,21 @@ If the code uses any addon, plugin, or external library, clearly indicate which 
 When generating Skript code, always indicate minimum required Skript version at the top, for example:
 # Minimum Skript version: 2.13.2
 
+## Skript Syntax Verification
+If a Skript/addon syntax detail is uncertain, version-sensitive, or possibly outdated:
+1) Use Web Search before answering.
+2) Prioritize these sources:
+   - https://skripthub.net/docs
+   - https://docs.skunity.com/syntax
+3) Return verified syntax only, with addon/version context when available.
+4) If verification is not possible, explicitly say it is unknown and do not invent syntax.
+
+## Anti-Hallucination Rules
+- Never fabricate Skript effects, events, expressions, sections, addon APIs, or parameter names.
+- Never guess addon compatibility/version as a fact without verification.
+- If unsure: either web-search and verify, or refuse to provide unverified syntax.
+- Prefer concrete executable examples over abstract syntax templates.
+
 ## Python Chart Rules
 When making charts:
 1) use matplotlib (not seaborn)

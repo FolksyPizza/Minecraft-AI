@@ -93,7 +93,18 @@ STAGE1_GENERAL_SHARE=0.85 STAGE2_GENERAL_SHARE=0.55 STAGE2_TEMPLATE_SHARE_CAP=0.
 bash scripts/run_train.sh
 ```
 
-Curated addon sources include `ShaneBeee/SkBee` and `SkriptLang/skript-reflect`.
+Curated addon sources include:
+- `ShaneBeee/SkBee`
+- `SkriptLang/skript-reflect`
+- `APickledWalrus/skript-gui`
+- `Sashie/skript-yaml`
+- `Pesekjak/Hippo`
+- `Ekpoa/PoaSkRewritev2`
+
+Defaults in `scripts/run_train.sh` now prefer diversity:
+- `FETCH_GENERAL_SOURCES=1`
+- `FETCH_GITHUB_SOURCES=1`
+- `MIN_GENERAL_ROWS=5000` (hard floor to avoid over-specialized adapters)
 
 ## Outputs
 
