@@ -4,6 +4,13 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VENV_DIR="${ROOT_DIR}/.venv"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
+MINECRAFT_ONLY="${MINECRAFT_ONLY:-0}"
+
+if [[ "${MINECRAFT_ONLY}" == "1" ]]; then
+  echo "[train] MINECRAFT_ONLY=1 -> stage1_general will be skipped"
+  FETCH_GENERAL_SOURCES="${FETCH_GENERAL_SOURCES:-0}"
+  MIN_GENERAL_ROWS="${MIN_GENERAL_ROWS:-0}"
+fi
 
 if [[ ! -d "${VENV_DIR}" ]]; then
   echo "[setup] creating venv at ${VENV_DIR}"
@@ -179,6 +186,9 @@ if [[ "${LOAD_IN_8BIT:-0}" == "1" ]]; then
 fi
 if [[ "${LOAD_IN_4BIT:-0}" == "1" ]]; then
   TRAIN_ARGS+=(--load_in_4bit)
+fi
+if [[ "${MINECRAFT_ONLY}" == "1" ]]; then
+  TRAIN_ARGS+=(--minecraft_only)
 fi
 
 torchrun \

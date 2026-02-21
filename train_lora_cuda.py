@@ -292,6 +292,7 @@ def main() -> int:
     ap.add_argument("--logging_steps", type=int, default=20)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--packing", action="store_true", default=True)
+    ap.add_argument("--minecraft_only", action="store_true", default=False)
     args = ap.parse_args()
 
     set_seed(args.seed)
@@ -317,36 +318,41 @@ def main() -> int:
         "trust_remote_code": trust_remote_code,
         "world_size": int(os.environ.get("WORLD_SIZE", "1")),
         "deepspeed_config": str(ds_config) if ds_config is not None else None,
+        "minecraft_only": args.minecraft_only,
     }
     (output_dir / "run_info.json").write_text(json.dumps(run_info, indent=2), encoding="utf-8")
 
     target_modules = [m.strip() for m in args.target_modules.split(",") if m.strip()]
 
-    stage1_adapter = train_stage(
-        stage_name="stage1_general",
-        model_name=model_name,
-        trust_remote_code=trust_remote_code,
-        dataset_path=Path(args.stage1_dataset).resolve(),
-        output_dir=output_dir,
-        deepspeed_config=ds_config,
-        max_seq_len=args.max_seq_len,
-        batch_size=args.per_device_train_batch_size,
-        grad_accum=args.gradient_accumulation_steps,
-        epochs=args.num_train_epochs_stage1,
-        lr=args.learning_rate_stage1,
-        lora_r=args.lora_r,
-        lora_alpha=args.lora_alpha,
-        lora_dropout=args.lora_dropout,
-        target_modules=target_modules,
-        save_steps=args.save_steps,
-        eval_steps=args.eval_steps,
-        logging_steps=args.logging_steps,
-        seed=args.seed,
-        packing=args.packing,
-        previous_adapter=None,
-        load_in_8bit=args.load_in_8bit,
-        load_in_4bit=args.load_in_4bit,
-    )
+    stage1_adapter: Path | None = None
+    if args.minecraft_only:
+        print("[train] minecraft_only=1 -> skipping stage1_general")
+    else:
+        stage1_adapter = train_stage(
+            stage_name="stage1_general",
+            model_name=model_name,
+            trust_remote_code=trust_remote_code,
+            dataset_path=Path(args.stage1_dataset).resolve(),
+            output_dir=output_dir,
+            deepspeed_config=ds_config,
+            max_seq_len=args.max_seq_len,
+            batch_size=args.per_device_train_batch_size,
+            grad_accum=args.gradient_accumulation_steps,
+            epochs=args.num_train_epochs_stage1,
+            lr=args.learning_rate_stage1,
+            lora_r=args.lora_r,
+            lora_alpha=args.lora_alpha,
+            lora_dropout=args.lora_dropout,
+            target_modules=target_modules,
+            save_steps=args.save_steps,
+            eval_steps=args.eval_steps,
+            logging_steps=args.logging_steps,
+            seed=args.seed,
+            packing=args.packing,
+            previous_adapter=None,
+            load_in_8bit=args.load_in_8bit,
+            load_in_4bit=args.load_in_4bit,
+        )
 
     stage2_adapter = train_stage(
         stage_name="stage2_minecraft",
@@ -375,9 +381,10 @@ def main() -> int:
     )
 
     summary = {
-        "stage1_adapter": str(stage1_adapter),
+        "stage1_adapter": str(stage1_adapter) if stage1_adapter is not None else None,
         "stage2_adapter_final": str(stage2_adapter),
         "resolved_model": model_name,
+        "minecraft_only": args.minecraft_only,
     }
     (output_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps(summary, indent=2))

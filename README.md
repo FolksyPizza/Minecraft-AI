@@ -104,6 +104,18 @@ LOAD_IN_8BIT=1 LOAD_IN_4BIT=0 \
 bash scripts/run_train.sh
 ```
 
+Train only the Minecraft stage (skip Stage 1 general coding):
+
+```bash
+MINECRAFT_ONLY=1 \
+FETCH_GENERAL_SOURCES=0 \
+MIN_GENERAL_ROWS=0 \
+MODEL_NAME=Qwen/Qwen2.5-Coder-7B \
+LOAD_IN_8BIT=1 LOAD_IN_4BIT=0 \
+MAX_SEQ_LEN=1024 GRAD_ACCUM_STEPS=16 \
+bash scripts/run_train.sh
+```
+
 Curated addon sources include:
 - `ShaneBeee/SkBee`
 - `SkriptLang/skript-reflect`
