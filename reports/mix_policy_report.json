@@ -1,10 +1,15 @@
 {
-  "minecraft_rows": 53522,
+  "minecraft_rows_raw": 66953,
+  "minecraft_rows_after_meta_filter": 35054,
+  "minecraft_concrete_rows": 34793,
+  "minecraft_template_rows": 261,
   "general_rows": 0,
-  "stage1_rows": 2676,
-  "stage2_rows": 53522,
-  "stage1_minecraft_anchor_rows": 2676,
-  "stage2_non_minecraft_ratio_cap": 0.15,
-  "stage2_selected_general_rows": 0,
-  "stage2_actual_non_minecraft_share": 0.0
+  "stage1_rows": 26000,
+  "stage2_rows": 35054,
+  "stage1_general_share_target": 0.85,
+  "stage2_general_share_target": 0.55,
+  "stage2_template_share_cap": 0.08,
+  "stage2_template_rows_selected": 261,
+  "stage2_general_rows_selected": 0,
+  "stage2_concrete_rows_selected": 26739
 }

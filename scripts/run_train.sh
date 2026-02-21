@@ -51,13 +51,26 @@ if [[ ! -f "${MC_SOURCE_RAW}" ]]; then
   exit 1
 fi
 
-if [[ "${FETCH_GITHUB_SOURCES:-0}" == "1" ]]; then
-  python "${ROOT_DIR}/scripts/download_sources.py" \
-    --raw-dir "${ROOT_DIR}/raw" \
-    --github-cache-dir "${ROOT_DIR}/raw/github" \
-    --github-config "${ROOT_DIR}/configs/github_sources.yaml" \
-    --github-out "${MC_SOURCE_GITHUB}" \
+if [[ "${FETCH_GITHUB_SOURCES:-0}" == "1" || "${FETCH_GENERAL_SOURCES:-0}" == "1" ]]; then
+  DL_ARGS=(
+    --raw-dir "${ROOT_DIR}/raw"
+    --github-cache-dir "${ROOT_DIR}/raw/github"
+    --github-config "${ROOT_DIR}/configs/github_sources.yaml"
+    --github-out "${MC_SOURCE_GITHUB}"
     --manifest-out "${ROOT_DIR}/raw/source_manifests/github_scan_manifest.json"
+  )
+  if [[ "${FETCH_GENERAL_SOURCES:-0}" != "1" ]]; then
+    DL_ARGS+=(--skip-hf)
+  fi
+  python "${ROOT_DIR}/scripts/download_sources.py" \
+    "${DL_ARGS[@]}"
+fi
+
+if [[ "${FETCH_GENERAL_SOURCES:-0}" == "1" ]]; then
+  python "${ROOT_DIR}/scripts/standardize_sources.py" \
+    --java-file "${ROOT_DIR}/raw/java_dataset.jsonl" \
+    --kotlin-file "${ROOT_DIR}/raw/kotlin_dataset.jsonl" \
+    --out "${ROOT_DIR}/labeled/sources/java_kotlin_standardized.jsonl"
 fi
 
 python "${ROOT_DIR}/scripts/merge_pair_sources.py" \
@@ -85,7 +98,12 @@ if [[ "${REBUILD_STAGE_DATA:-0}" == "1" || ! -f "${STAGE1}" || ! -f "${STAGE2}" 
     --general-sources "${GENERAL_SOURCES[@]}" \
     --stage1-out "${STAGE1}" \
     --stage2-out "${STAGE2}" \
-    --report-out "${ROOT_DIR}/reports/mix_policy_report.json"
+    --report-out "${ROOT_DIR}/reports/mix_policy_report.json" \
+    --stage1-general-share "${STAGE1_GENERAL_SHARE:-0.85}" \
+    --stage2-general-share "${STAGE2_GENERAL_SHARE:-0.55}" \
+    --stage2-template-share-cap "${STAGE2_TEMPLATE_SHARE_CAP:-0.08}" \
+    --max-stage1-rows "${MAX_STAGE1_ROWS:-120000}" \
+    --max-stage2-rows "${MAX_STAGE2_ROWS:-140000}"
 fi
 
 python "${ROOT_DIR}/scripts/validate_dataset.py" "${STAGE1}" "${STAGE2}"

@@ -88,6 +88,14 @@ Fetch/update curated GitHub sources first (internet required):
 FETCH_GITHUB_SOURCES=1 REBUILD_STAGE_DATA=1 bash scripts/run_train.sh
 ```
 
+Build a more \"normal coder\" dataset mix (general-first):
+
+```bash
+FETCH_GENERAL_SOURCES=1 FETCH_GITHUB_SOURCES=1 REBUILD_STAGE_DATA=1 \
+STAGE1_GENERAL_SHARE=0.85 STAGE2_GENERAL_SHARE=0.55 STAGE2_TEMPLATE_SHARE_CAP=0.08 \
+bash scripts/run_train.sh
+```
+
 ## Outputs
 
 - `output/stage1_general_adapter/`
