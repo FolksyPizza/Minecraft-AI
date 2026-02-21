@@ -117,6 +117,7 @@ MIN_GENERAL_ROWS=0 \
 STAGE2_GENERAL_SHARE=0.0 \
 STAGE2_TEMPLATE_SHARE_CAP=0.05 \
 STAGE2_FACT_SHARE_CAP=0.05 \
+ENRICH_MINECRAFT_CONCRETE=0 \
 MODEL_NAME=Qwen/Qwen2.5-Coder-7B \
 LOAD_IN_8BIT=1 LOAD_IN_4BIT=0 \
 MAX_SEQ_LEN=1024 GRAD_ACCUM_STEPS=16 \
@@ -127,6 +128,7 @@ Concrete SPECS data generation knobs (optional):
 - `SPECS_MAX_PER_ADDON` (default `4000`)
 - `SPECS_MAX_GITHUB_ROWS` (default `20000`)
 - `SPECS_MAX_CORE_ROWS` (default `20000`)
+- `ENRICH_MINECRAFT_CONCRETE` (default `0`; set `1` only if you explicitly want synthetic pattern-concretization rows)
 
 Curated addon sources include:
 - `ShaneBeee/SkBee`

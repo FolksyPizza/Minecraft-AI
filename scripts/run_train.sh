@@ -58,7 +58,7 @@ MC_SOURCE_ADDON_VERSION="${ROOT_DIR}/labeled/sources/skript_addon_version_pairs.
 MC_SOURCE_SPECS_CONCRETE="${ROOT_DIR}/labeled/sources/specs_concrete_pairs.jsonl"
 MC_SOURCE_COMBINED="${ROOT_DIR}/labeled/sources/skripthub_plus_github_pairs.jsonl"
 MC_SOURCE_ENRICHED="${ROOT_DIR}/labeled/sources/skripthub_pairs_enriched.jsonl"
-MC_SOURCE="${MC_SOURCE_ENRICHED}"
+MC_SOURCE="${MC_SOURCE_COMBINED}"
 
 if [[ ! -f "${MC_SOURCE_RAW}" ]]; then
   echo "[error] missing Minecraft source dataset: ${MC_SOURCE_RAW}" >&2
@@ -107,9 +107,16 @@ python "${ROOT_DIR}/scripts/merge_pair_sources.py" \
   --inputs "${MC_SOURCE_RAW}" "${MC_SOURCE_GITHUB}" "${MC_SOURCE_ADDON_VERSION}" "${MC_SOURCE_SPECS_CONCRETE}" \
   --out "${MC_SOURCE_COMBINED}"
 
-python "${ROOT_DIR}/scripts/enrich_minecraft_concrete.py" \
-  --in "${MC_SOURCE_COMBINED}" \
-  --out "${MC_SOURCE_ENRICHED}"
+if [[ "${ENRICH_MINECRAFT_CONCRETE:-0}" == "1" ]]; then
+  python "${ROOT_DIR}/scripts/enrich_minecraft_concrete.py" \
+    --in "${MC_SOURCE_COMBINED}" \
+    --out "${MC_SOURCE_ENRICHED}"
+  MC_SOURCE="${MC_SOURCE_ENRICHED}"
+  echo "[data] ENRICH_MINECRAFT_CONCRETE=1 -> using enriched source"
+else
+  MC_SOURCE="${MC_SOURCE_COMBINED}"
+  echo "[data] ENRICH_MINECRAFT_CONCRETE=0 (default) -> using merged concrete source only"
+fi
 
 BUILD_STAGE_DATA=0
 if [[ "${REBUILD_STAGE_DATA:-0}" == "1" || ! -f "${STAGE1}" || ! -f "${STAGE2}" ]]; then

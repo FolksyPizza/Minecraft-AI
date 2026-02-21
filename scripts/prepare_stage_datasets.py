@@ -84,6 +84,40 @@ def is_template_like(text: str) -> bool:
     )
 
 
+def is_low_quality_completion(prompt: str, completion: str) -> bool:
+    c = completion.strip()
+    cl = c.lower()
+    pl = prompt.lower()
+
+    if not c:
+        return True
+
+    # Common low-signal synthetic artifacts from placeholder expansion.
+    if "heal value" in cl:
+        return True
+    if "\"example\"" in cl or "'example'" in cl:
+        return True
+    if re.search(r"\bvalue\b", cl) and ("skript" in pl or "syntax" in pl):
+        return True
+
+    # Drop long one-line rambling generations.
+    if "\n" not in c and len(c) > 220:
+        return True
+
+    # Drop boolean chains (e.g., true false true ...).
+    bool_tokens = re.findall(r"\b(?:true|false)\b", cl)
+    if len(bool_tokens) >= 8:
+        return True
+
+    # Drop obviously synthetic/color placeholder patterns.
+    if "in color rgb 0, 0, 0" in cl:
+        return True
+    if "as potion effect type" in cl and "example" in cl:
+        return True
+
+    return False
+
+
 def sample_rows(rnd: random.Random, rows: list[dict[str, str]], k: int) -> list[dict[str, str]]:
     if k <= 0:
         return []
@@ -142,6 +176,8 @@ def main() -> int:
     mc_raw = dedupe(read_pairs(Path(args.minecraft_source).resolve()))
     mc_meta = [r for r in mc_raw if is_meta_task(r["prompt"], r["completion"])]
     mc_rows = [r for r in mc_raw if not is_meta_task(r["prompt"], r["completion"])]
+    mc_low_quality = [r for r in mc_rows if is_low_quality_completion(r["prompt"], r["completion"])]
+    mc_rows = [r for r in mc_rows if not is_low_quality_completion(r["prompt"], r["completion"])]
 
     mc_fact_rows: list[dict[str, str]] = []
     for src in args.minecraft_fact_sources:
@@ -210,6 +246,7 @@ def main() -> int:
         "minecraft_rows_raw": len(mc_raw),
         "minecraft_rows_meta_filtered": len(mc_meta),
         "minecraft_rows_after_meta_filter": len(mc_rows),
+        "minecraft_rows_low_quality_filtered": len(mc_low_quality),
         "minecraft_concrete_rows": len(mc_concrete),
         "minecraft_template_rows": len(mc_template),
         "minecraft_fact_pool_rows": len(mc_fact_pool),

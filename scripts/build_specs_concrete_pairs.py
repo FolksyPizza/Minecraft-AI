@@ -132,6 +132,11 @@ def template_like(text: str) -> bool:
 def clean_concrete_line(text: str) -> str:
     line = re.sub(r"\s+", " ", text.strip())
     line = line.strip("`")
+    # Normalize placeholder artifacts into concrete runnable tokens.
+    line = re.sub(r"\"example\"", "\"config\"", line, flags=re.IGNORECASE)
+    line = re.sub(r"'example'", "'config'", line, flags=re.IGNORECASE)
+    line = re.sub(r"\bexample\b", "config", line, flags=re.IGNORECASE)
+    line = re.sub(r"\bvalue\b", "player", line, flags=re.IGNORECASE)
     return line
 
 
@@ -156,6 +161,14 @@ def valid_line(text: str) -> bool:
     if any(marker in lowered for marker in banned_markers):
         return False
     if text.endswith("."):
+        return False
+    if "heal value" in lowered:
+        return False
+    if '"example"' in lowered or "'example'" in lowered:
+        return False
+    if " in color rgb 0, 0, 0" in lowered:
+        return False
+    if len(re.findall(r"\b(?:true|false)\b", lowered)) >= 8:
         return False
     w = len(text.split())
     return 2 <= w <= 30
