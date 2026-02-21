@@ -37,6 +37,7 @@ Default list:
 - `scripts/merge_pair_sources.py`: merges/dedupes multiple prompt/completion sources
 - `scripts/enrich_minecraft_concrete.py`: converts syntax-style rows into concrete command completions
 - `scripts/build_addon_version_pairs.py`: builds explicit syntax -> addon/version supervision rows
+- `scripts/build_specs_concrete_pairs.py`: builds concrete SPECS-aligned code/command pairs (addons + Paper/Folia)
 - `deepspeed/zero3.json`: default ZeRO-3 sharding
 - `deepspeed/zero2.json`: fallback config
 
@@ -50,6 +51,9 @@ Optional general sources (if present, auto-used):
 - `labeled/sources/python_pytorch_pairs.jsonl`
 - `labeled/sources/cpp_c_cuda_pairs.jsonl`
 - `labeled/sources/sql_r_pairs.jsonl`
+
+Additional concrete source auto-generated each run:
+- `labeled/sources/specs_concrete_pairs.jsonl`
 
 Generated training files:
 - `labeled/final_general_stage1.jsonl`

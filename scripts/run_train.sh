@@ -52,6 +52,7 @@ STAGE2="${ROOT_DIR}/labeled/final_minecraft_primary.jsonl"
 MC_SOURCE_RAW="${ROOT_DIR}/labeled/sources/skripthub_pairs.jsonl"
 MC_SOURCE_GITHUB="${ROOT_DIR}/labeled/sources/github_skript_concrete.jsonl"
 MC_SOURCE_ADDON_VERSION="${ROOT_DIR}/labeled/sources/skript_addon_version_pairs.jsonl"
+MC_SOURCE_SPECS_CONCRETE="${ROOT_DIR}/labeled/sources/specs_concrete_pairs.jsonl"
 MC_SOURCE_COMBINED="${ROOT_DIR}/labeled/sources/skripthub_plus_github_pairs.jsonl"
 MC_SOURCE_ENRICHED="${ROOT_DIR}/labeled/sources/skripthub_pairs_enriched.jsonl"
 MC_SOURCE="${MC_SOURCE_ENRICHED}"
@@ -87,12 +88,17 @@ python "${ROOT_DIR}/scripts/build_addon_version_pairs.py" \
   --in "${MC_SOURCE_RAW}" \
   --out "${MC_SOURCE_ADDON_VERSION}"
 
+python "${ROOT_DIR}/scripts/build_specs_concrete_pairs.py" \
+  --skripthub-in "${MC_SOURCE_RAW}" \
+  --github-in "${MC_SOURCE_GITHUB}" \
+  --out "${MC_SOURCE_SPECS_CONCRETE}"
+
 python "${ROOT_DIR}/scripts/check_required_addon_coverage.py" \
   --in "${MC_SOURCE_RAW}" \
   --min-per-addon "${MIN_REQUIRED_ADDON_ROWS:-20}"
 
 python "${ROOT_DIR}/scripts/merge_pair_sources.py" \
-  --inputs "${MC_SOURCE_RAW}" "${MC_SOURCE_GITHUB}" "${MC_SOURCE_ADDON_VERSION}" \
+  --inputs "${MC_SOURCE_RAW}" "${MC_SOURCE_GITHUB}" "${MC_SOURCE_ADDON_VERSION}" "${MC_SOURCE_SPECS_CONCRETE}" \
   --out "${MC_SOURCE_COMBINED}"
 
 python "${ROOT_DIR}/scripts/enrich_minecraft_concrete.py" \
