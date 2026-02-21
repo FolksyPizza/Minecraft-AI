@@ -114,11 +114,19 @@ Train only the Minecraft stage (skip Stage 1 general coding):
 MINECRAFT_ONLY=1 \
 FETCH_GENERAL_SOURCES=0 \
 MIN_GENERAL_ROWS=0 \
+STAGE2_GENERAL_SHARE=0.0 \
+STAGE2_TEMPLATE_SHARE_CAP=0.05 \
+STAGE2_FACT_SHARE_CAP=0.05 \
 MODEL_NAME=Qwen/Qwen2.5-Coder-7B \
 LOAD_IN_8BIT=1 LOAD_IN_4BIT=0 \
 MAX_SEQ_LEN=1024 GRAD_ACCUM_STEPS=16 \
 bash scripts/run_train.sh
 ```
+
+Concrete SPECS data generation knobs (optional):
+- `SPECS_MAX_PER_ADDON` (default `4000`)
+- `SPECS_MAX_GITHUB_ROWS` (default `20000`)
+- `SPECS_MAX_CORE_ROWS` (default `20000`)
 
 Curated addon sources include:
 - `ShaneBeee/SkBee`

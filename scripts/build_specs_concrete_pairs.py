@@ -349,9 +349,9 @@ def main() -> int:
     ap.add_argument("--skripthub-in", required=True)
     ap.add_argument("--github-in", required=False, default="")
     ap.add_argument("--out", required=True)
-    ap.add_argument("--max-per-addon", type=int, default=1200)
-    ap.add_argument("--max-github-rows", type=int, default=5000)
-    ap.add_argument("--max-core-rows", type=int, default=5000)
+    ap.add_argument("--max-per-addon", type=int, default=4000)
+    ap.add_argument("--max-github-rows", type=int, default=20000)
+    ap.add_argument("--max-core-rows", type=int, default=20000)
     args = ap.parse_args()
 
     skripthub_rows = read_pairs(Path(args.skripthub_in).resolve())

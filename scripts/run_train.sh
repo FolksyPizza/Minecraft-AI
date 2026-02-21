@@ -10,6 +10,9 @@ if [[ "${MINECRAFT_ONLY}" == "1" ]]; then
   echo "[train] MINECRAFT_ONLY=1 -> stage1_general will be skipped"
   FETCH_GENERAL_SOURCES="${FETCH_GENERAL_SOURCES:-0}"
   MIN_GENERAL_ROWS="${MIN_GENERAL_ROWS:-0}"
+  STAGE2_GENERAL_SHARE="${STAGE2_GENERAL_SHARE:-0.0}"
+  STAGE2_TEMPLATE_SHARE_CAP="${STAGE2_TEMPLATE_SHARE_CAP:-0.05}"
+  STAGE2_FACT_SHARE_CAP="${STAGE2_FACT_SHARE_CAP:-0.05}"
 fi
 
 if [[ ! -d "${VENV_DIR}" ]]; then
@@ -91,7 +94,10 @@ python "${ROOT_DIR}/scripts/build_addon_version_pairs.py" \
 python "${ROOT_DIR}/scripts/build_specs_concrete_pairs.py" \
   --skripthub-in "${MC_SOURCE_RAW}" \
   --github-in "${MC_SOURCE_GITHUB}" \
-  --out "${MC_SOURCE_SPECS_CONCRETE}"
+  --out "${MC_SOURCE_SPECS_CONCRETE}" \
+  --max-per-addon "${SPECS_MAX_PER_ADDON:-4000}" \
+  --max-github-rows "${SPECS_MAX_GITHUB_ROWS:-20000}" \
+  --max-core-rows "${SPECS_MAX_CORE_ROWS:-20000}"
 
 python "${ROOT_DIR}/scripts/check_required_addon_coverage.py" \
   --in "${MC_SOURCE_RAW}" \
