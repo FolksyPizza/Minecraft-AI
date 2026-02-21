@@ -1,15 +1,15 @@
 {
-  "minecraft_rows_raw": 66953,
-  "minecraft_rows_after_meta_filter": 35054,
-  "minecraft_concrete_rows": 34793,
-  "minecraft_template_rows": 261,
+  "minecraft_rows_raw": 114458,
+  "minecraft_rows_after_meta_filter": 82559,
+  "minecraft_concrete_rows": 82266,
+  "minecraft_template_rows": 293,
   "general_rows": 0,
   "stage1_rows": 26000,
-  "stage2_rows": 35054,
+  "stage2_rows": 82559,
   "stage1_general_share_target": 0.85,
   "stage2_general_share_target": 0.55,
   "stage2_template_share_cap": 0.08,
-  "stage2_template_rows_selected": 261,
+  "stage2_template_rows_selected": 293,
   "stage2_general_rows_selected": 0,
-  "stage2_concrete_rows_selected": 26739
+  "stage2_concrete_rows_selected": 36859
 }

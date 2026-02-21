@@ -36,6 +36,7 @@ Default list:
 - `scripts/download_sources.py`: Hugging Face + curated GitHub source ingestion
 - `scripts/merge_pair_sources.py`: merges/dedupes multiple prompt/completion sources
 - `scripts/enrich_minecraft_concrete.py`: converts syntax-style rows into concrete command completions
+- `scripts/build_addon_version_pairs.py`: builds explicit syntax -> addon/version supervision rows
 - `deepspeed/zero3.json`: default ZeRO-3 sharding
 - `deepspeed/zero2.json`: fallback config
 
@@ -91,6 +92,8 @@ FETCH_GENERAL_SOURCES=1 FETCH_GITHUB_SOURCES=1 REBUILD_STAGE_DATA=1 \
 STAGE1_GENERAL_SHARE=0.85 STAGE2_GENERAL_SHARE=0.55 STAGE2_TEMPLATE_SHARE_CAP=0.08 \
 bash scripts/run_train.sh
 ```
+
+Curated addon sources include `ShaneBeee/SkBee` and `SkriptLang/skript-reflect`.
 
 ## Outputs
 

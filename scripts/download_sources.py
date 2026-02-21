@@ -89,13 +89,20 @@ def _load_github_sources(path: Path) -> list[dict]:
     return [s for s in sources if isinstance(s, dict) and s.get("enabled", True)]
 
 
-def _clone_or_update(repo: str, ref: str, dest: Path) -> None:
+def _clone_or_update(repo: str, ref: str | None, dest: Path) -> None:
     url = f"https://github.com/{repo}.git"
     if not dest.exists():
-        _run(["git", "clone", "--depth", "1", "--branch", ref, url, str(dest)])
+        if ref:
+            _run(["git", "clone", "--depth", "1", "--branch", ref, url, str(dest)])
+        else:
+            _run(["git", "clone", "--depth", "1", url, str(dest)])
         return
-    _run(["git", "fetch", "origin", ref, "--depth", "1"], cwd=dest)
-    _run(["git", "checkout", "-q", "FETCH_HEAD"], cwd=dest)
+    if ref:
+        _run(["git", "fetch", "origin", ref, "--depth", "1"], cwd=dest)
+        _run(["git", "checkout", "-q", "FETCH_HEAD"], cwd=dest)
+    else:
+        _run(["git", "fetch", "--depth", "1", "origin"], cwd=dest)
+        _run(["git", "checkout", "-q", "origin/HEAD"], cwd=dest)
 
 
 def _extract_skript_pairs(repo_cfg: dict, repo_dir: Path) -> list[dict[str, str]]:
@@ -112,8 +119,6 @@ def _extract_skript_pairs(repo_cfg: dict, repo_dir: Path) -> list[dict[str, str]
     for path in sorted(files):
         if path.is_dir():
             continue
-        if path.suffix.lower() != ".sk":
-            continue
         if path in seen_files:
             continue
         seen_files.add(path)
@@ -121,13 +126,34 @@ def _extract_skript_pairs(repo_cfg: dict, repo_dir: Path) -> list[dict[str, str]
         rel = path.relative_to(repo_dir).as_posix()
         try:
             with path.open("r", encoding="utf-8", errors="ignore") as f:
-                for raw in f:
-                    line = _normalize_line(raw)
-                    if not _looks_concrete_skript(line):
-                        continue
-                    rows.append(_line_to_pair(repo_name, rel_path=rel, line=line))
-                    if len(rows) >= max_lines:
-                        return rows
+                if path.suffix.lower() == ".sk":
+                    for raw in f:
+                        line = _normalize_line(raw)
+                        if not _looks_concrete_skript(line):
+                            continue
+                        rows.append(_line_to_pair(repo_name, rel_path=rel, line=line))
+                        if len(rows) >= max_lines:
+                            return rows
+                elif path.suffix.lower() in {".md", ".markdown"}:
+                    in_code = False
+                    for raw in f:
+                        line = raw.rstrip("\n")
+                        stripped = line.strip()
+                        if stripped.startswith("```"):
+                            fence = stripped.strip("`").strip().lower()
+                            if not in_code and fence in {"", "skript", "vb", "text"}:
+                                in_code = True
+                            else:
+                                in_code = False
+                            continue
+                        if not in_code:
+                            continue
+                        candidate = _normalize_line(line)
+                        if not _looks_concrete_skript(candidate):
+                            continue
+                        rows.append(_line_to_pair(repo_name, rel_path=rel, line=candidate))
+                        if len(rows) >= max_lines:
+                            return rows
         except OSError:
             continue
     return rows
@@ -163,12 +189,13 @@ def main() -> int:
 
     for src in sources:
         repo = str(src["repo"])
-        ref = str(src.get("ref", "main"))
+        ref = src.get("ref")
+        ref = str(ref).strip() if ref is not None else ""
         repo_dir = github_cache / repo.replace("/", "__")
 
         status = {"repo": repo, "ref": ref, "license": src.get("license"), "pairs": 0, "error": None}
         try:
-            _clone_or_update(repo=repo, ref=ref, dest=repo_dir)
+            _clone_or_update(repo=repo, ref=(ref or None), dest=repo_dir)
             pairs = _extract_skript_pairs(src, repo_dir)
             all_pairs.extend(pairs)
             status["pairs"] = len(pairs)

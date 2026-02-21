@@ -18,9 +18,27 @@
       "error": null,
       "local_path": "/Users/william/Desktop/sk/LoRA/Minecraft-AI/raw/github/Skungee__Skungee",
       "url": "https://github.com/Skungee/Skungee"
+    },
+    {
+      "repo": "ShaneBeee/SkBee",
+      "ref": "master",
+      "license": "GPL-3.0",
+      "pairs": 535,
+      "error": null,
+      "local_path": "/Users/william/Desktop/sk/LoRA/Minecraft-AI/raw/github/ShaneBeee__SkBee",
+      "url": "https://github.com/ShaneBeee/SkBee"
+    },
+    {
+      "repo": "SkriptLang/skript-reflect",
+      "ref": "",
+      "license": "MIT",
+      "pairs": 69,
+      "error": null,
+      "local_path": "/Users/william/Desktop/sk/LoRA/Minecraft-AI/raw/github/SkriptLang__skript-reflect",
+      "url": "https://github.com/SkriptLang/skript-reflect"
     }
   ],
   "hf_downloads": {},
-  "total_pairs": 3004,
+  "total_pairs": 3541,
   "github_out": "/Users/william/Desktop/sk/LoRA/Minecraft-AI/labeled/sources/github_skript_concrete.jsonl"
 }

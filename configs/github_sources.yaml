@@ -16,3 +16,21 @@ sources:
     include_globs:
       - "**/*.sk"
     max_lines: 5000
+  - repo: ShaneBeee/SkBee
+    ref: master
+    license: GPL-3.0
+    purpose: "SkBee addon test scripts and examples"
+    enabled: true
+    include_globs:
+      - "src/test/scripts/**/*.sk"
+      - "**/*.sk"
+    max_lines: 12000
+  - repo: SkriptLang/skript-reflect
+    license: MIT
+    purpose: "skript-reflect tests and documentation examples"
+    enabled: true
+    include_globs:
+      - "src/test/scripts/**/*.sk"
+      - "docs/**/*.md"
+      - "README.md"
+    max_lines: 8000
