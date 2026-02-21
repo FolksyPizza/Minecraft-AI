@@ -1,0 +1,26 @@
+{
+  "config": "/Users/william/Desktop/sk/LoRA/Minecraft-AI/configs/github_sources.yaml",
+  "sources": [
+    {
+      "repo": "SkriptLang/Skript",
+      "ref": "master",
+      "license": "GPL-3.0",
+      "pairs": 3303,
+      "error": null,
+      "local_path": "/Users/william/Desktop/sk/LoRA/Minecraft-AI/raw/github/SkriptLang__Skript",
+      "url": "https://github.com/SkriptLang/Skript"
+    },
+    {
+      "repo": "Skungee/Skungee",
+      "ref": "master",
+      "license": "Apache-2.0",
+      "pairs": 0,
+      "error": null,
+      "local_path": "/Users/william/Desktop/sk/LoRA/Minecraft-AI/raw/github/Skungee__Skungee",
+      "url": "https://github.com/Skungee/Skungee"
+    }
+  ],
+  "hf_downloads": {},
+  "total_pairs": 3004,
+  "github_out": "/Users/william/Desktop/sk/LoRA/Minecraft-AI/labeled/sources/github_skript_concrete.jsonl"
+}

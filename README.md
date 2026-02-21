@@ -9,10 +9,11 @@ bash scripts/run_train.sh
 The script will:
 1. Create `.venv`
 2. Install `requirements.txt`
-3. Enrich Minecraft syntax rows with concrete one-line command variants
-4. Validate/prepare stage datasets
-5. Resolve a **public model anonymously** (no HF login/token)
-6. Launch distributed two-stage LoRA training across all visible GPUs with DeepSpeed
+3. Optionally scan curated GitHub repos for concrete `.sk` command lines
+4. Enrich Minecraft syntax rows with concrete one-line command variants
+5. Validate/prepare stage datasets
+6. Resolve a **public model anonymously** (no HF login/token)
+7. Launch distributed two-stage LoRA training across all visible GPUs with DeepSpeed
 
 ## Requirements
 
@@ -36,6 +37,9 @@ Default list:
 - `scripts/run_train.sh`: one-command setup + launch
 - `scripts/prepare_stage_datasets.py`: dynamic 15-30% non-Minecraft cap composition
 - `scripts/validate_dataset.py`: strict dataset validation
+- `scripts/download_sources.py`: Hugging Face + curated GitHub source ingestion
+- `scripts/merge_pair_sources.py`: merges/dedupes multiple prompt/completion sources
+- `scripts/enrich_minecraft_concrete.py`: converts syntax-style rows into concrete command completions
 - `deepspeed/zero3.json`: default ZeRO-3 sharding
 - `deepspeed/zero2.json`: fallback config
 
@@ -76,6 +80,12 @@ Force stage dataset regeneration (after source updates):
 
 ```bash
 REBUILD_STAGE_DATA=1 bash scripts/run_train.sh
+```
+
+Fetch/update curated GitHub sources first (internet required):
+
+```bash
+FETCH_GITHUB_SOURCES=1 REBUILD_STAGE_DATA=1 bash scripts/run_train.sh
 ```
 
 ## Outputs

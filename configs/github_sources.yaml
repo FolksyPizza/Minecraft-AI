@@ -1,0 +1,18 @@
+sources:
+  - repo: SkriptLang/Skript
+    ref: master
+    license: GPL-3.0
+    purpose: "Official Skript examples and syntax test scripts"
+    enabled: true
+    include_globs:
+      - "src/main/resources/scripts/**/*.sk"
+      - "src/test/skript/**/*.sk"
+    max_lines: 30000
+  - repo: Skungee/Skungee
+    ref: master
+    license: Apache-2.0
+    purpose: "Addon repository; may include extra Skript examples"
+    enabled: true
+    include_globs:
+      - "**/*.sk"
+    max_lines: 5000
