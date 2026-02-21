@@ -9,9 +9,10 @@ bash scripts/run_train.sh
 The script will:
 1. Create `.venv`
 2. Install `requirements.txt`
-3. Validate/prepare stage datasets
-4. Resolve a **public model anonymously** (no HF login/token)
-5. Launch distributed two-stage LoRA training across all visible GPUs with DeepSpeed
+3. Enrich Minecraft syntax rows with concrete one-line command variants
+4. Validate/prepare stage datasets
+5. Resolve a **public model anonymously** (no HF login/token)
+6. Launch distributed two-stage LoRA training across all visible GPUs with DeepSpeed
 
 ## Requirements
 
@@ -69,6 +70,12 @@ GRAD_ACCUM_STEPS=16 \
 EPOCHS_STAGE1=1.0 \
 EPOCHS_STAGE2=1.0 \
 bash scripts/run_train.sh
+```
+
+Force stage dataset regeneration (after source updates):
+
+```bash
+REBUILD_STAGE_DATA=1 bash scripts/run_train.sh
 ```
 
 ## Outputs

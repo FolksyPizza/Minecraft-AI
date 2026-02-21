@@ -40,14 +40,20 @@ PY
 # Compose stage datasets if missing.
 STAGE1="${ROOT_DIR}/labeled/final_general_stage1.jsonl"
 STAGE2="${ROOT_DIR}/labeled/final_minecraft_primary.jsonl"
-MC_SOURCE="${ROOT_DIR}/labeled/sources/skripthub_pairs.jsonl"
+MC_SOURCE_RAW="${ROOT_DIR}/labeled/sources/skripthub_pairs.jsonl"
+MC_SOURCE_ENRICHED="${ROOT_DIR}/labeled/sources/skripthub_pairs_enriched.jsonl"
+MC_SOURCE="${MC_SOURCE_ENRICHED}"
 
-if [[ ! -f "${MC_SOURCE}" ]]; then
-  echo "[error] missing Minecraft source dataset: ${MC_SOURCE}" >&2
+if [[ ! -f "${MC_SOURCE_RAW}" ]]; then
+  echo "[error] missing Minecraft source dataset: ${MC_SOURCE_RAW}" >&2
   exit 1
 fi
 
-if [[ ! -f "${STAGE1}" || ! -f "${STAGE2}" ]]; then
+python "${ROOT_DIR}/scripts/enrich_minecraft_concrete.py" \
+  --in "${MC_SOURCE_RAW}" \
+  --out "${MC_SOURCE_ENRICHED}"
+
+if [[ "${REBUILD_STAGE_DATA:-0}" == "1" || ! -f "${STAGE1}" || ! -f "${STAGE2}" ]]; then
   echo "[data] building stage datasets"
 
   GENERAL_SOURCES=()
