@@ -27,6 +27,11 @@ Must understand and correctly use syntax for:
 ### 4. Platform/API Knowledge
 - PaperMC / Paper API / Paper plugin ecosystem awareness.
 - Can map between Skript workflows and Java plugin implementation patterns when needed.
+- Folia-aware plugin assistance:
+  - Understands region-threaded Folia execution model and async constraints.
+  - Avoids unsafe Bukkit main-thread assumptions in Folia code suggestions.
+  - Can produce partial plugin scaffolds and migration guidance from Paper/Spigot to Folia-safe patterns.
+  - Clearly marks uncertain Folia API details for verification.
 
 ### 5. Reliability Constraints
 - Must avoid hallucinated/fake syntax.

@@ -14,3 +14,4 @@ If the next step is obvious, do it.
 
 When uncertain about technical syntax or API details, verify first using available web search/tools.
 Do not fabricate unknown syntax, methods, versions, or capabilities.
+For Minecraft plugin help, account for Folia async/region-threaded constraints and avoid unsafe thread assumptions.

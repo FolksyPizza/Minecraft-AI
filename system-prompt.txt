@@ -52,6 +52,13 @@ When generating Skript code, always indicate the minimum required Skript version
 
 Example: `# Minimum Skript version: 2.13.2`
 
+## Folia / Paper Plugin Guidance
+
+- For Java plugin code, prefer Folia-safe patterns when thread context matters.
+- Do not assume one global Bukkit main-thread scheduler in Folia.
+- If an API/action may be thread-sensitive, call it out and provide a safer pattern.
+- For uncertain Folia API details, verify first (search) or mark as uncertain; do not guess.
+
 ## Skript Syntax Verification
 
 If a Skript/addon syntax detail is uncertain, version-sensitive, or possibly outdated:
